@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Logistic Mapping of Chaos</title>
+		<meta name="description" content="Create chaos from very simple math.">
+		<meta name="author" content="Jessica Johnson">
+		
+		<!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+		<!--[if lt IE 9]>
+		  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+		
+		<!-- JQuery -->
+		<script type="text/javascript" src="./jquery.min.js"></script>
+		
+		<!-- Experiment -->
+		<script type="text/javascript">
+			var values = [];
+			
+			/* -----------------------------
+			 * Graphing the logistic map can
+			 * be tricky, so we need to know
+			 * MIN, MAX, MID values in order
+			 * to keep the image centered in
+			 * the window dynamically.
+			 ------------------------------- */
+			
+			Array.max = function(array ){
+			    return Math.max.apply(Math, array);	
+			};
+
+			Array.min = function(array){
+			    return Math.min.apply(Math, array);
+			};
+		
+			/* -------------------------------
+			 * The actual math that calculates
+			 * the output for the map is in
+			 * the FOR loop below.
+			 * 
+			 * Please note the capital X's
+			 * have subscripts.
+			 * 
+			 *     Xn+1 = 1 - mu(Xn)^2
+			 * 
+			 *      For  0 <= mu < 2
+			 --------------------------------- */
+			
+			function fillArray() {							
+				var xval = Number($('#xVal').val());
+				var muval = Number($('#muVal').val());
+				values = [];
+				
+				for (var i=0; i < 100; i++) {
+					xval = 1 - (muval * (xval * xval));
+					values.push(xval);
+				};				
+			}
+
+			/* --------------------------------
+			 * Now to put the output of this
+			 * rather simple equation on a
+			 * graph.
+			 ---------------------------------- */
+			
+			function drawValues() {
+				
+				var c = document.getElementById("graphCanvas");
+				var ctx = c.getContext("2d");
+				var outputBox = $('#outputLabel');
+				var min = Array.min(values);
+				var max = Array.max(values);
+				var mid = (max + min) / 2;
+				var calcScale = (c.height - 10) / (max - min);
+				
+				// BELOW: Because the sliders can change, we would like to output the MAX/MIN/MID/Scale value for the given X and mu.
+				
+				$('#minmax').html('Min:' + min.toFixed(4) + ' Max:' + max.toFixed(4) + ' Mid:' + mid.toFixed(4) + ' Scale:' + calcScale.toFixed(4));
+				
+				ctx.clearRect(0, 0, c.width, c.height);	// start with an empty graph
+				ctx.fillStyle="#999999"; 				// bg color = gray
+				ctx.fillRect(0, 0, c.width, c.height);
+				ctx.beginPath();						// begin drawing
+				
+				/* -----------------------------------
+				 * This next FOR loop is go through
+				 * array created above and draw each
+				 * value, based on the sliders.
+				 ------------------------------------- */
+							
+				for (var i=0; i < values.length; i++) {
+					if(i===0) {
+						
+						/* -------------------------------
+						 * Values[i] to mid = For the 
+						 * adjustments of the center value.
+						 * 
+						 * Values 100 to mid = For the
+						 * adjustments to middle of graph.
+						 --------------------------------- */
+									
+						ctx.moveTo((i * (c.width / values.length)), ((values[i] - mid) * calcScale) + ((c.height / 2) - mid));
+					} else {
+						ctx.lineTo((i * (c.width / values.length)), ((values[i] - mid) * calcScale) + ((c.height / 2) - mid));
+					}
+					
+					outputBox.html(outputBox.html() + '<br />' + values[i].toFixed(4));		// output the values to the outputBox div					
+				};
+				ctx.strokeStyle="black";
+				ctx.stroke();				
+			}
+			
+			// Now make me my pretty graph!
+						
+			function doIt() {
+				$('#outputLabel').html('');
+				$('#showX').val(Number($('#xVal').val()).toFixed(2));
+				$('#showMu').val(Number($('#muVal').val()).toFixed(2));
+				$('#showScale').val(Number($('#scaleVal').val()).toFixed(0));
+				fillArray();
+				drawValues();
+			}
+			
+			$(function() {
+				doIt();
+			});
+		</script>
+	</head>
+	
+	<body>
+		Logistic mapping is a fun and simple way to play around with chaos. Since we deal with such smaller ranges of numbers, we are creating<br>
+		a "Butterfly Effect". This means you will get drastically different types of graphs based on small changes to the initial conditions.
+					
+		<p>
+		Change the sliders for your initial conditions and see what happens!
+		<p>
+		Try different X values for mu = 0.5, 1.1, 1.3, and 1.5. 
+		<p>
+		What happens when mu = 0.75?
+		<p>
+		X Value: <input type="range" id="xVal" min="0" max="2" value=".25" step="0.05" onchange="doIt();" style="width:200px;">
+		<input type="text" id="showX" value="0.25" onchange="$(&#39;#xVal&#39;).val(Number(this.value));doIt();" style="width:50px;">
+		<br>
+		
+		mu Value: <input type="range" id="muVal" min="0" max="2" value=".5" step="0.05" onchange="doIt();" style="width:200px;">
+		<input type="text" id="showMu" value="0.5" onchange="$(&#39;#muVal&#39;).val(Number(this.value));doIt();" style="width:50px;">
+		
+		<p>
+						
+		<div id="minmax">Min:0.5308 Max:0.9688 Mid:0.7498 Scale:890.4348</div>
+		
+		<br>
+		
+		<canvas id="graphCanvas" width="600" height="400"></canvas>		<!-- Our purdy graph -->
+		
+		<p>
+		Notice that when mu is small, the graph looks smooth. The larger you make mu, the more rigid it becomes.
+		<p>
+		The lesson here is that the small changes in initial conditions have profound effects on the data we retrieve. If you are using this data<br>
+		to predict an outcome, having a value of mu that is off just the teensiest tiniest bit will screw up your results by a lot. Thus, chaos <br>
+		and unpredictability are entwined.	
+		<br><br><br>	
+			
+		
+		DATA OUTPUT:
+		
+		<div id="outputLabel"><br>0.9688<br>0.5308<br>0.8591<br>0.6309<br>0.8010<br>0.6792<br>0.7693<br>0.7041<br>0.7521<br>0.7171<br>0.7429<br>0.7241<br>0.7379<br>0.7278<br>0.7352<br>0.7298<br>0.7337<br>0.7308<br>0.7329<br>0.7314<br>0.7325<br>0.7317<br>0.7323<br>0.7319<br>0.7322<br>0.7319<br>0.7321<br>0.7320<br>0.7321<br>0.7320<br>0.7321<br>0.7320<br>0.7321<br>0.7320<br>0.7321<br>0.7320<br>0.7321<br>0.7320<br>0.7321<br>0.7320<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321<br>0.7321</div>
+		
+	
+
+</body></html>
